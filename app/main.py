@@ -8,7 +8,7 @@ information on each dot.
 .. _Auto MPG dataset: https://archive.ics.uci.edu/ml/datasets/auto+mpg
 
 '''
-from mimetypes import init
+#from mimetypes import init
 import pandas as pd
 import numpy as np
 from bokeh.layouts import column, row
@@ -24,7 +24,7 @@ def eep_to_df(i):
     Reading the eep data from the grid
     Changing data from eep to pandas dataframe
     '''
-    track_list = glob.glob('./app/data/evtrack_grid/*.track.eep')
+    track_list = glob.glob('./app/data/*.track.eep')
     track_path = track_list[0]
     print('p1',track_path)
     print('p2',i)
@@ -142,7 +142,7 @@ def update_data(attr, old, new):
     layout.children[1] = create_new_figure()
 
 # start
-track_list = glob.glob('./app/data/evtrack_grid/*.track.eep')
+track_list = glob.glob('./app/data/*.track.eep')
 columns, continuous, discrete, df = eep_to_df(track_list[0])
 
 
