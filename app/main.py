@@ -15,7 +15,6 @@ from bokeh.layouts import column, row
 from bokeh.models import Select, HoverTool, ColumnDataSource, Slider, Range1d
 from bokeh.palettes import Spectral5
 from bokeh.plotting import curdoc, figure
-from bokeh.sampledata.autompg import autompg_clean as df
 import modules.read_mist_models as md
 import glob
 
@@ -25,7 +24,7 @@ def eep_to_df(i):
     Reading the eep data from the grid
     Changing data from eep to pandas dataframe
     '''
-    track_list = glob.glob('./myapp/data/evtrack_grid/*.track.eep')
+    track_list = glob.glob('./app/data/evtrack_grid/*.track.eep')
     track_path = track_list[0]
     print('p1',track_path)
     print('p2',i)
@@ -143,7 +142,7 @@ def update_data(attr, old, new):
     layout.children[1] = create_new_figure()
 
 # start
-track_list = glob.glob('./myapp/data/evtrack_grid/*.track.eep')
+track_list = glob.glob('./app/data/evtrack_grid/*.track.eep')
 columns, continuous, discrete, df = eep_to_df(track_list[0])
 
 
