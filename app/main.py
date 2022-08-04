@@ -11,8 +11,8 @@ information on each dot.
 #from mimetypes import init
 import pandas as pd
 import numpy as np
-from bokeh.layouts import column, row
-from bokeh.models import Select, HoverTool, ColumnDataSource, Slider, Range1d
+from bokeh.layouts import column, row, layout
+from bokeh.models import Select, HoverTool, ColumnDataSource, Div, TextInput
 from bokeh.palettes import Spectral5
 from bokeh.plotting import curdoc, figure
 import modules.read_mist_models as md
@@ -33,17 +33,17 @@ def eep_to_df(i):
     ees = eep.eeps
     #usable_data
     df = pd.DataFrame(ees['star_age'],columns=['age'])
-    df['age'] = df.age/1.e9
+    df['age'] = df.age/1e9
     df['logg'] = ees['log_g']
     df['teff'] = 10.**ees['log_Teff']
-    #df['phase'] = ees['phase']
-    #df['center_h1'] = ees['center_h1']
-    #df['center_he4'] = ees['center_he4']
-    #df['center_c12'] = ees['center_c12']
-    #df['radius'] = 10.**ees['log_R']
-    #df['center_T'] = 10.**ees['log_center_T']
-    #df['center_Rho'] = 10.**ees['log_center_Rho']
-    #df['center_degeneracy'] = ees['center_degeneracy']  
+    df['phase'] = ees['phase']
+    df['center_h1'] = ees['center_h1']
+    df['center_he4'] = ees['center_he4']
+    df['center_c12'] = ees['center_c12']
+    df['radius'] = 10.**ees['log_R']
+    df['center_T'] = 10.**ees['log_center_T']
+    df['center_Rho'] = 10.**ees['log_center_Rho']
+    df['center_degeneracy'] = ees['center_degeneracy']  
     #chainging phase to evolution
     evphase0=np.zeros(1)
     for i in ees['phase']:
@@ -66,10 +66,10 @@ def eep_to_df(i):
     #df = eep_to_df(track_list[0])
     df = df.copy()
 
-    SIZES = list(range(6, 22, 3))
-    COLORS = Spectral5
-    N_SIZES = len(SIZES)
-    N_COLORS = len(COLORS)
+    #SIZES = list(range(6, 22, 3))
+    #COLORS = Spectral5
+    #N_SIZES = len(SIZES)
+    #_COLORS = len(COLORS)
 
     # data cleanup
     #df.age = df.age.astype(str)
@@ -81,94 +81,102 @@ def eep_to_df(i):
     print(columns)
     discrete = [x for x in columns if df[x].dtype == object]
     continuous = [x for x in columns if x not in discrete]
-    return columns, continuous, discrete, df
+    return columns, continuous, discrete, initial_mass, df
 
 def create_new_figure():
-    columns, continuous, discrete, df = eep_to_df(track.value)
-    df = df.sort_values(by='age')
+    columns, continuous, discrete, initial_mass, df = eep_to_df(track.value)
+    #df = df.sort_values(by='age')
     sample1 = df.sample(np.shape(df)[0]) 
     source1 = ColumnDataSource(sample1)
-    #xs = df[x.value].values
-    #ys = df[y.value].values
-    x_title = x.value.title()
-    y_title = y.value.title()
+    x1_title = x1.value.title()
+    y1_title = y1.value.title()
+    x2_title = x2.value.title()
+    y2_title = y2.value.title()
 
-    #kw = dict()
-    #if x.value in discrete:
-    #    kw['x_range'] = sorted(set(xs))
-    #if y.value in discrete:
-    #    kw['y_range'] = sorted(set(ys))
-    #kw['title'] = "%s vs %s" % (x_title, y_title)
-    TOOLS = "pan,wheel_zoom,box_zoom,reset,tap"
+    #age_indicator
+    agedif = abs(df.age-float(age_input.value))
+    aid = np.where(agedif==np.min(agedif))
+    print(aid,min(df.age.values),max(df.age.values),age_input.value)
+    xs1 = df[x1.value].values[aid]
+    ys1 = df[y1.value].values[aid]
+    xs2 = df[x2.value].values[aid]
+    ys2 = df[y2.value].values[aid]
 
-    p = figure(height=600, width=800, tools=TOOLS)
-    p.xaxis.axis_label = x_title
-    p.yaxis.axis_label = y_title
-
-    '''
-    if x.value in discrete:
-        p.xaxis.major_label_orientation = pd.np.pi / 4
-
-    sz = 9
-    if size.value != 'None':
-        if len(set(df[size.value])) > N_SIZES:
-            groups = pd.qcut(df[size.value].values, N_SIZES, duplicates='drop')
-        else:
-            groups = pd.Categorical(df[size.value])
-        sz = [SIZES[xx] for xx in groups.codes]
-
-    c = "#31AADE"
-    if color.value != 'None':
-        if len(set(df[color.value])) > N_COLORS:
-            groups = pd.qcut(df[color.value].values, N_COLORS, duplicates='drop')
-        else:
-            groups = pd.Categorical(df[color.value])
-        c = [COLORS[xx] for xx in groups.codes]
-    '''
-    age_slider.value
-
-    p.circle(x.value, y.value, source=source1, color='blue', size=5, line_color="white", alpha=0.6,name='trackplt')
-    #p.circle(x=xs, y=ys, color='blue', size=5, line_color="white", alpha=0.6, hover_color='white', hover_alpha=0.5)
-    p.x_range = Range1d(age_slider.value-0.1,float(age_slider.value)+0.1)
-
+    TOOLS = "pan,box_select,wheel_zoom,box_zoom,reset,tap"
+    #plot1
+    p1 = figure(height=600, width=800, tools=TOOLS)
+    p1.xaxis.axis_label = x1_title
+    p1.yaxis.axis_label = y1_title
+    p1.circle(x1.value, y1.value, source=source1, color='cyan',selection_color="red", size=5, alpha=0.6,name='trackplt1')
+    p1.circle(xs1, ys1, color='red', size=10)
+    if((x1.value=='teff')&(y1.value=='logg')):
+        p1.y_range.flipped = True
+        p1.x_range.flipped = True
     tooltips1 = [('Age ','@age'),('Phase ','@evphase')]
-    p.add_tools(HoverTool(names=['trackplt'],tooltips=tooltips1))
+    p1.add_tools(HoverTool(names=['trackplt1'],tooltips=tooltips1))
+    p1.title = x1.value +" vs "+ y1.value
 
-    return p
+    #plot2
+    p2 = figure(height=600, width=800, tools=TOOLS)
+    p2.xaxis.axis_label = x2_title
+    p2.yaxis.axis_label = y2_title
+    p2.circle(x2.value, y2.value, source=source1, color='cyan',selection_color="red", size=5, alpha=0.6,name='trackplt2')
+    p2.circle(xs2, ys2, color='red', size=10)
+    if((x2.value=='teff')&(y2.value=='logg')):
+        p2.y_range.flipped = True
+        p2.x_range.flipped = True
+    tooltips1 = [('Age ','@age'),('Phase ','@evphase')]
+    p2.add_tools(HoverTool(names=['trackplt2'],tooltips=tooltips1))
+    p2.title = x2.value +" vs "+ y2.value
+
+    return row(p1, p2)
 
 
 def update_data(attr, old, new):
     print(attr,old,new)
     layout.children[1] = create_new_figure()
 
-# start
+# Program start
 track_list = glob.glob('./app/data/*.track.eep')
-columns, continuous, discrete, df = eep_to_df(track_list[0])
-
+columns, continuous, discrete, initial_mass, df = eep_to_df(track_list[0])
 
 #track side menu
 track = Select(title='Track', value=track_list[0], options=track_list)
 track.on_change('value', update_data)
 
 # side menu
-x = Select(title='X-Axis', value='teff', options=columns)
-x.on_change('value', update_data)
+x1 = Select(title='X1-Axis', value='teff', options=columns)
+x1.on_change('value', update_data)
 
-y = Select(title='Y-Axis', value='logg', options=columns)
-y.on_change('value', update_data)
+y1 = Select(title='Y1-Axis', value='logg', options=columns)
+y1.on_change('value', update_data)
 
-age_slider = Slider(title="Age slider", start=0, end=3, value=0.5, step=0.05)
-age_slider.on_change('value', update_data)
+x2 = Select(title='X2-Axis', value='age', options=columns)
+x2.on_change('value', update_data)
 
+y2 = Select(title='Y2-Axis', value='center_h1', options=columns)
+y2.on_change('value', update_data)
 
-#size = Select(title='Size', value='None', options=['None'] + continuous)
-#size.on_change('value', update_data)
+age_input = TextInput(title="Input age(Gyr)",value="2.5") 
+age_input.on_change('value', update_data)
+    
+div = Div(text=""" 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+ <div class="p-5 text-dark-center text"> 
+ <h1>Modules and Experiments in Stellar Astrophysics (MESA)</h1>
+ <h3> MESA Isochrones and Stellar Tracks (MIST)</h3>
+ </div>
+""",sizing_mode="stretch_width")
 
-#color = Select(title='Color', value='None', options=['None'] + continuous)
-#color.on_change('value', update_data)
-
-controls = column(track,x, y,age_slider, width=200)
-layout = row(controls, create_new_figure())
-
-curdoc().add_root(layout)
-curdoc().title = "Crossfilter"
+controls = column(track,x1, y1,x2,y2,age_input, width=300)
+#layout = row(controls, create_new_figure())
+#curdoc().add_root(layout)
+l = layout([div],[controls,create_new_figure()])
+curdoc().add_root(l)
+curdoc().title = "Evolutionary tracks"
