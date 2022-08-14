@@ -134,8 +134,9 @@ def create_new_figure():
 
 def update_data(attr, old, new):
     print(attr,old,new)
-    layout.children[1] = create_new_figure()
-
+    #layout.children[1] = create_new_figure()
+    ui.children[1] = create_new_figure()
+    
 # Program start
 track_list = glob.glob('./app/data/*.track.eep')
 columns, continuous, discrete, initial_mass, df = eep_to_df(track_list[0])
@@ -175,8 +176,9 @@ div = Div(text="""
 """,sizing_mode="stretch_width")
 
 controls = column(track,x1, y1,x2,y2,age_input, width=300)
-#layout = row(controls, create_new_figure())
+ui = row(controls, create_new_figure())
 #curdoc().add_root(layout)
-l = layout([div],[controls,create_new_figure()])
+plot = create_new_figure()
+l = layout([div],[ui])
 curdoc().add_root(l)
-curdoc().title = "Evolutionary tracks"
+#curdoc().title = "Evolutionary tracks"
