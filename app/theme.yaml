@@ -1,8 +1,8 @@
 attrs:
     Figure:
-        background_fill_color: '#2F2F2F'
-        border_fill_color: '#2F2F2F'
-        outline_line_color: '#444444'
+        background_fill_color: 'black'
+        border_fill_color: 'black'
+        outline_line_color: 'black'
     Axis:
         axis_line_color: "white"
         axis_label_text_color: "white"

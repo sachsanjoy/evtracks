@@ -1,19 +1,9 @@
-''' A crossfilter plot map that uses the `Auto MPG dataset`_. This example
-demonstrates the relationship of datasets together. A hover tooltip displays
-information on each dot.
 
-.. note::
-    This example needs the Pandas package to run.
-
-.. _Auto MPG dataset: https://archive.ics.uci.edu/ml/datasets/auto+mpg
-
-'''
-#from mimetypes import init
 import pandas as pd
 import numpy as np
 from bokeh.layouts import column, row, layout
 from bokeh.models import Select, HoverTool, ColumnDataSource, Div, TextInput
-from bokeh.palettes import Spectral5
+#from bokeh.palettes import Spectral5
 from bokeh.plotting import curdoc, figure
 import modules.read_mist_models as md
 import glob
@@ -28,7 +18,9 @@ def eep_to_df(i):
     track_path = track_list[0]
     print('p1',track_path)
     print('p2',i)
-    eep = md.EEP(i)
+    j = './app/data/'+i+'M.track.eep'
+    print(j)
+    eep = md.EEP(j)
     initial_mass = eep.minit
     ees = eep.eeps
     #usable_data
@@ -104,7 +96,7 @@ def create_new_figure():
 
     TOOLS = "pan,box_select,wheel_zoom,box_zoom,reset,tap"
     #plot1
-    p1 = figure(height=600, width=800, tools=TOOLS)
+    p1 = figure(height=600, width=800, background_fill_color='black', tools=TOOLS)
     p1.xaxis.axis_label = x1_title
     p1.yaxis.axis_label = y1_title
     p1.circle(x1.value, y1.value, source=source1, color='cyan',selection_color="red", size=5, alpha=0.6,name='trackplt1')
@@ -115,9 +107,9 @@ def create_new_figure():
     tooltips1 = [('Age ','@age'),('Phase ','@evphase')]
     p1.add_tools(HoverTool(names=['trackplt1'],tooltips=tooltips1))
     p1.title = x1.value +" vs "+ y1.value
-
+    
     #plot2
-    p2 = figure(height=600, width=800, tools=TOOLS)
+    p2 = figure(height=600, width=800, background_fill_color='black', tools=TOOLS)
     p2.xaxis.axis_label = x2_title
     p2.yaxis.axis_label = y2_title
     p2.circle(x2.value, y2.value, source=source1, color='cyan',selection_color="red", size=5, alpha=0.6,name='trackplt2')
@@ -128,22 +120,33 @@ def create_new_figure():
     tooltips1 = [('Age ','@age'),('Phase ','@evphase')]
     p2.add_tools(HoverTool(names=['trackplt2'],tooltips=tooltips1))
     p2.title = x2.value +" vs "+ y2.value
-
+    
     return row(p1, p2)
 
 
 def update_data(attr, old, new):
     print(attr,old,new)
-    #layout.children[1] = create_new_figure()
     ui.children[1] = create_new_figure()
-    
+
+
+
 # Program start
 track_list = glob.glob('./app/data/*.track.eep')
-columns, continuous, discrete, initial_mass, df = eep_to_df(track_list[0])
+
+#making initial mass list from track list
+ls0=[]
+for ls in track_list:
+    lsi, lsf = ls.find('data/'), ls.find('M')
+    ls0.append(str(ls[lsi+5:lsf]))  
+
+columns, continuous, discrete, initial_mass, df = eep_to_df(ls0[0])
+
+track = Select(title='Initial Mass (* 0.0001 Msun)', value=ls0[0], options=ls0)
+track.on_change('value', update_data)
 
 #track side menu
-track = Select(title='Track', value=track_list[0], options=track_list)
-track.on_change('value', update_data)
+#track = Select(title='Track', value=track_list[0], options=track_list)
+#track.on_change('value', update_data)
 
 # side menu
 x1 = Select(title='X1-Axis', value='teff', options=columns)
@@ -167,6 +170,12 @@ div = Div(text="""
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+      body {
+             background:black;
+             color:white;
+     }
+    </style>
 </head>
 <body>
  <div class="p-5 text-dark-center text"> 
